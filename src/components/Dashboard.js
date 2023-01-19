@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import axios from "axios";
+import { setInterview } from "helpers/reducers";
 
 import {
   getTotalInterviews,
@@ -65,7 +66,24 @@ class Dashboard extends Component {
       });
     });
 
+    this.socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
+
+    this.socket.onmessage = event => {
+      const data = JSON.parse(event.data);
+    
+      if (typeof data === "object" && data.type === "SET_INTERVIEW") {
+        this.setState(previousState =>
+          setInterview(previousState, data.id, data.interview)
+        );
+      }
+    };
+
   }
+  
+  componentWillUnmount() {
+    this.socket.close();
+  }
+
 
   componentDidUpdate(previousProps, previousState) {
     if (previousState.focused !== this.state.focused) {
